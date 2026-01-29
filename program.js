@@ -1,85 +1,78 @@
-
 /**
- * Assignment 1 - Learning Git
- * 
- * This program reads a list of integers from the user,
- * stores them in an array, calculates the mean and median,
- * and displays the results.
- * 
- * The user can stop entering values by typing 'q'.
+ * Assignment 2:
+ * - Prompt user for integers until they enter q or Q
+ * - Echo integers back
+ * - Check if product of any two integers equals a third integer
+ * - Error message if input is not an integer or q/Q
  */
 
 const readline = require("readline");
 
-// Create readline interface for user input
 const rl = readline.createInterface({
   input: process.stdin,
-  output: process.stdout
+  output: process.stdout,
 });
 
 const numbers = [];
 
 /**
- * Calculates the mean (average) of an array of numbers.
+ * Returns an object describing the first match found:
+ * { a, b, c } meaning a * b === c
+ * If no match exists, returns null.
  */
-function calculateMean(arr) {
-  const sum = arr.reduce((total, num) => total + num, 0);
-  return sum / arr.length;
-}
+function findProductMatch(arr) {
+  if (arr.length < 3) return null;
 
-/**
- * Calculates the median of an array of numbers.
- */
-function calculateMedian(arr) {
-  const sorted = [...arr].sort((a, b) => a - b);
-  const mid = Math.floor(sorted.length / 2);
+  for (let i = 0; i < arr.length; i++) {
+    for (let j = 0; j < arr.length; j++) {
+      if (i === j) continue;
 
-  if (sorted.length % 2 === 0) {
-    // Even number of elements
-    return (sorted[mid - 1] + sorted[mid]) / 2;
-  } else {
-    // Odd number of elements
-    return sorted[mid];
+      const product = arr[i] * arr[j];
+
+      for (let k = 0; k < arr.length; k++) {
+        if (k === i || k === j) continue;
+
+        if (product === arr[k]) {
+          return { a: arr[i], b: arr[j], c: arr[k] };
+        }
+      }
+    }
   }
+  return null;
 }
 
-/**
- * Prompts the user to enter integers until they type 'q'.
- */
-function promptUser() {
-  rl.question("Enter an integer (or 'q' to quit): ", (input) => {
-    // Allow user to quit
-    if (input.toLowerCase() === "q") {
-      if (numbers.length === 0) {
-        console.error("Error: No numbers were entered.");
-      } else {
-        const mean = calculateMean(numbers);
-        const median = calculateMedian(numbers);
+function ask() {
+  rl.question("Enter an integer (or q to quit): ", (input) => {
+    const value = input.trim();
 
-        console.log("\nResults:");
-        console.log("Numbers:", numbers);
-        console.log("Mean:", mean);
-        console.log("Median:", median);
+    // Quit if q or Q
+    if (value.toLowerCase() === "q") {
+      console.log("\nYou entered:", numbers.length ? numbers.join(", ") : "(none)");
+
+      if (numbers.length < 3) {
+        console.log("Not enough integers to check the condition (need at least 3).");
+      } else {
+        const match = findProductMatch(numbers);
+        if (match) {
+          console.log(`Condition is met: ${match.a} x ${match.b} = ${match.c}`);
+        } else {
+          console.log("Condition was not met");
+        }
       }
 
       rl.close();
       return;
     }
 
-    // Convert input to number
-    const value = Number(input);
-
-    // Error handling for invalid integers
-    if (!Number.isInteger(value)) {
-      console.error("Invalid input. Please enter an integer or 'q' to quit.");
-    } else {
-      numbers.push(value);
+    // Validate integer input (no decimals)
+    if (!/^-?\d+$/.test(value)) {
+      console.log("Error: Please enter a valid integer or 'q' to quit.");
+      return ask();
     }
 
-    // Continue prompting
-    promptUser();
+    numbers.push(Number(value));
+    ask();
   });
 }
 
-// Start the program
-promptUser();
+ask();
